@@ -2,7 +2,6 @@
   "name": "premium-news-app",
   "private": true,
   "version": "0.0.0",
-  "type": "module",
   "scripts": {
     "dev": "vite",
     "start": "node backend/server.js",
