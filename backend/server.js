@@ -62,11 +62,21 @@ app.use((req, res) => {
     });
 });
 
+// Root route for Railway health check
+app.get('/', (req, res) => {
+    res.json({
+        status: 'OK',
+        message: 'Portal Backend is running',
+        service: 'premium-news-app-backend'
+    });
+});
+
 const PORT = process.env.PORT || 5000;
 
-app.listen(PORT, () => {
+app.listen(PORT, '0.0.0.0', () => {
     console.log(`🚀 Server running on port ${PORT}`);
     console.log(`📝 Environment: ${process.env.NODE_ENV || 'development'}`);
+    console.log(`📡 Listening on 0.0.0.0:${PORT}`);
 });
 
 module.exports = app;
