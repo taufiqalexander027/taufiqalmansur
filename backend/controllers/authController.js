@@ -11,7 +11,7 @@ const generateToken = (user) => {
             username: user.username,
             role: user.role_name
         },
-        process.env.JWT_SECRET,
+        process.env.JWT_SECRET || 'mysupersecretkey12345',
         { expiresIn: process.env.JWT_EXPIRE || '7d' }
     );
 };
@@ -166,7 +166,7 @@ exports.login = async (req, res) => {
         console.error('Login error:', error);
         res.status(500).json({
             success: false,
-            message: 'Server error during login'
+            message: 'Server error during login: ' + error.message
         });
     }
 };
