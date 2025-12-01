@@ -217,6 +217,27 @@ FROM users u
 JOIN roles r ON u.role_id = r.id;
 
 -- =============================================
+-- EMAIL QUEUE TABLE (Required for Email Service)
+-- =============================================
+CREATE TABLE IF NOT EXISTS email_queue (
+    id INT PRIMARY KEY AUTO_INCREMENT,
+    recipient_email VARCHAR(255) NOT NULL,
+    recipient_name VARCHAR(255),
+    subject VARCHAR(500) NOT NULL,
+    body TEXT NOT NULL,
+    template_name VARCHAR(100),
+    related_entity_type VARCHAR(50),
+    related_entity_id INT,
+    status ENUM('pending', 'sent', 'failed') DEFAULT 'pending',
+    attempts INT DEFAULT 0,
+    error_message TEXT,
+    sent_at TIMESTAMP NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    INDEX idx_status (status),
+    INDEX idx_created (created_at)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- =============================================
 -- Success Message
 -- =============================================
 SELECT '✅ Database schema created successfully!' AS status;
