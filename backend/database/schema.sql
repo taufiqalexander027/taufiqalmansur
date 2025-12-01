@@ -3,11 +3,9 @@
 -- Purpose: Backend foundation dengan auth dan news management
 
 -- Database creation
-CREATE DATABASE IF NOT EXISTS portal_terintegrasi 
-CHARACTER SET utf8mb4 
-COLLATE utf8mb4_unicode_ci;
-
-USE portal_terintegrasi;
+-- Database creation handled by connection string
+-- CREATE DATABASE IF NOT EXISTS portal_terintegrasi ...
+-- USE portal_terintegrasi;
 
 -- =============================================
 -- ROLES TABLE

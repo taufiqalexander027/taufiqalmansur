@@ -3,7 +3,7 @@
 -- Tables untuk Course Management, Enrollment, Progress
 -- =============================================
 
-USE portal_terintegrasi;
+-- USE portal_terintegrasi;
 
 -- =============================================
 -- COURSE CATEGORIES TABLE

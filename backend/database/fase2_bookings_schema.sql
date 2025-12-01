@@ -3,7 +3,7 @@
 -- Tables untuk Kunjungan Lapang & Sewa Gedung
 -- =============================================
 
-USE portal_terintegrasi;
+-- USE portal_terintegrasi;
 
 -- =============================================
 -- SERVICE TYPES TABLE

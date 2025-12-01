@@ -3,7 +3,7 @@
 -- E-Laporan ASN & Laporan Keuangan (from port 5001 & 3001)
 -- =============================================
 
-USE portal_terintegrasi;
+-- USE portal_terintegrasi;
 
 -- =============================================
 -- ASN ACTIVITY TYPES
