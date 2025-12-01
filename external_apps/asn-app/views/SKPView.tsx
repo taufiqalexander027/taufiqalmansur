@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Activity, UserProfile } from '../types';
-import { getActivities, saveActivities, getUserProfile } from '../services/storageService';
+import { getActivities, saveActivity, updateActivity, deleteActivity, getUserProfile } from '../services/apiService';
 import { ActivityForm } from '../components/SKP/ActivityForm';
 import { PrintLayout } from '../components/SKP/PrintLayout';
 import { UserProfileForm } from '../components/UserProfileForm';
@@ -40,10 +40,13 @@ export const SKPView: React.FC = () => {
 
   useEffect(() => {
     // Init data
-    const allActivities = getActivities();
-    setActivities(allActivities);
-    const profile = getUserProfile();
-    setUserProfile(profile);
+    const loadData = async () => {
+      const allActivities = await getActivities();
+      setActivities(allActivities);
+      const profile = await getUserProfile();
+      setUserProfile(profile);
+    };
+    loadData();
   }, []);
 
   useEffect(() => {
@@ -57,27 +60,25 @@ export const SKPView: React.FC = () => {
     setFilteredActivities(sorted);
   }, [activities, selectedPeriod]);
 
-  const handleAddActivity = (data: Omit<Activity, 'id'>) => {
-    const newActivity: Activity = {
-      ...data,
-      id: Date.now().toString()
-    };
-    const updated = saveActivities([...activities, newActivity]);
-    setActivities(updated);
+  const handleAddActivity = async (data: Omit<Activity, 'id'>, imageFile?: File) => {
+    const saved = await saveActivity(data, imageFile);
+    if (saved) {
+      setActivities(prev => [...prev, saved]);
+    }
   };
 
-  const handleUpdateActivity = (data: Activity) => {
-    const updatedList = activities.map(a => a.id === data.id ? data : a);
-    const saved = saveActivities(updatedList);
-    setActivities(saved);
-    setEditingActivity(null);
+  const handleUpdateActivity = async (data: Activity, imageFile?: File) => {
+    const updated = await updateActivity(data, imageFile);
+    if (updated) {
+      setActivities(prev => prev.map(a => a.id === data.id ? updated : a));
+      setEditingActivity(null);
+    }
   };
 
-  const handleDeleteActivity = (id: string) => {
+  const handleDeleteActivity = async (id: string) => {
     if (confirm('Apakah Anda yakin ingin menghapus kegiatan ini?')) {
-      const updatedList = activities.filter(a => a.id !== id);
-      const saved = saveActivities(updatedList);
-      setActivities(saved);
+      await deleteActivity(id);
+      setActivities(prev => prev.filter(a => a.id !== id));
     }
   };
 

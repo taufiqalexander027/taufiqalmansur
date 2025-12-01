@@ -1,20 +1,34 @@
 /**
  * Master Data Service
  * Handle CRUD operations for master data (Seksi, Program, Kegiatan, Rekening)
- * Uses localStorage for persistence
+ * Uses API for persistence
  */
 
 import { createMasterData, createRekening } from '../models/masterData.js';
+import { getRekenings, syncMasterData } from './apiService';
 
-const STORAGE_KEY = 'realisasi_keuangan_master_data';
+export { syncMasterData }; // Re-export
 
 /**
- * Load master data from storage
+ * Load master data from API
+ * Returns full master data structure (reconstructed from flat rekenings)
  */
-export const getMasterData = () => {
+export const getMasterData = async () => {
     try {
-        const data = localStorage.getItem(STORAGE_KEY);
-        return data ? JSON.parse(data) : createMasterData();
+        const rekenings = await getRekenings();
+
+        // Reconstruct Seksi, Programs, etc. from Rekenings if needed
+        // For now, we just return the structure expected by the app
+        // The app mainly uses 'rekenings' array.
+
+        return {
+            tahun: 2025,
+            rekenings: rekenings,
+            seksi: [], // TODO: Extract if needed
+            programs: [],
+            kegiatans: [],
+            subKegiatans: []
+        };
     } catch (error) {
         console.error('Error loading master data:', error);
         return createMasterData();
@@ -22,26 +36,18 @@ export const getMasterData = () => {
 };
 
 /**
- * Save master data to storage
+ * Save master data to API
+ * We only sync 'rekenings' as that's the core data
  */
-export const saveMasterData = (data) => {
-    try {
-        localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
-        console.log('✅ Master data saved successfully to localStorage');
-        console.log('   Total rekening:', data.rekenings.length);
-        console.log('   Total seksi:', data.seksi.length);
-        return true;
-    } catch (error) {
-        console.error('❌ Error saving master data:', error);
-        return false;
-    }
+export const saveMasterData = async (data) => {
+    return await syncMasterData(data.rekenings);
 };
 
 /**
  * Initialize master data from imported Excel data
  * This is a one-time setup function
  */
-export const initializeFromImport = (parsedData) => {
+export const initializeFromImport = async (parsedData) => {
     console.log('initializeFromImport called with', parsedData.length, 'items');
     const masterData = createMasterData();
 
@@ -54,11 +60,6 @@ export const initializeFromImport = (parsedData) => {
     // parsedData is a flat array of items from the Excel parser
     parsedData.forEach((item, index) => {
         try {
-            // Debug logging for SEKSI PELATIHAN
-            if (item.seksi === 'SEKSI PELATIHAN') {
-                console.log(`Processing SEKSI PELATIHAN item ${index}:`, item);
-            }
-
             // 1. Seksi
             if (!seksiMap.has(item.seksi)) {
                 seksiMap.set(item.seksi, {
@@ -117,9 +118,6 @@ export const initializeFromImport = (parsedData) => {
                 }
                 existingRek.anggaranPAPBD[sumberDana] = item.anggaranPAPBD;
 
-                if (item.seksi === 'SEKSI PELATIHAN') {
-                    console.log(`Updated existing rekening for SEKSI PELATIHAN:`, existingRek.kode);
-                }
             } else {
                 // Create new rekening (new kode OR same kode but different seksi)
                 const newRek = createRekening({
@@ -139,51 +137,32 @@ export const initializeFromImport = (parsedData) => {
                     sheetName: item.sheetName // Preserve sheet name
                 });
                 masterData.rekenings.push(newRek);
-
-                if (item.seksi === 'SEKSI PELATIHAN') {
-                    console.log(`Created new rekening for SEKSI PELATIHAN:`, newRek.kode);
-                }
             }
         } catch (error) {
             console.error(`Error processing item ${index}:`, item, error);
         }
     });
 
-    // Convert Maps to Arrays
-    masterData.seksi = Array.from(seksiMap.values());
-    masterData.programs = Array.from(programMap.values());
-    masterData.kegiatans = Array.from(kegiatanMap.values());
-    masterData.subKegiatans = Array.from(subKegiatanMap.values());
+    console.log('Total rekenings generated:', masterData.rekenings.length);
 
-    console.log('Saving masterData.seksi:', masterData.seksi);
-    console.log('Total rekenings:', masterData.rekenings.length);
-
-    // Log rekening distribution by seksi
-    const rekeningBySeksi = {};
-    masterData.rekenings.forEach(rek => {
-        const seksiNama = masterData.seksi.find(s => s.id === rek.seksiId)?.nama || 'Unknown';
-        rekeningBySeksi[seksiNama] = (rekeningBySeksi[seksiNama] || 0) + 1;
-    });
-    console.log('Rekening distribution by seksi:', rekeningBySeksi);
-
-    saveMasterData(masterData);
+    // Sync to API
+    await syncMasterData(masterData.rekenings);
     return masterData;
 };
 
 /**
  * Get list of all rekenings
  */
-export const getAllRekening = () => {
-    const data = getMasterData();
-    return data.rekenings;
+export const getAllRekening = async () => {
+    return await getRekenings();
 };
 
 /**
  * Get rekenings filtered by seksi and sumber dana
  */
-export const getRekeningBySeksi = (seksiId, sumberDana) => {
-    const data = getMasterData();
-    return data.rekenings.filter(r =>
+export const getRekeningBySeksi = async (seksiId, sumberDana) => {
+    const rekenings = await getRekenings();
+    return rekenings.filter(r =>
         (seksiId === 'ALL' || r.seksiId === seksiId) &&
         (sumberDana === 'ALL' || r.sumberDana.includes(sumberDana))
     );

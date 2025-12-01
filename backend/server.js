@@ -14,6 +14,7 @@ app.use(morgan('dev'));
 
 // Static files untuk uploads
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
+app.use('/uploads/skp', express.static(path.join(__dirname, 'uploads/skp')));
 
 // Import routes
 const authRoutes = require('./routes/auth');
@@ -21,6 +22,8 @@ const newsRoutes = require('./routes/news');
 const bookingRoutes = require('./routes/bookings');
 const lmsRoutes = require('./routes/lms');
 const internalRoutes = require('./routes/internal');
+const skpRoutes = require('./routes/skp');
+const financeRoutes = require('./routes/finance');
 
 // Import services
 const { startEmailProcessor } = require('./services/emailService');
@@ -31,6 +34,8 @@ app.use('/api/news', newsRoutes);
 app.use('/api/bookings', bookingRoutes);
 app.use('/api/lms', lmsRoutes);
 app.use('/api/internal', internalRoutes);
+app.use('/api/skp', skpRoutes);
+app.use('/api/finance', financeRoutes);
 
 // Start email processor
 startEmailProcessor();

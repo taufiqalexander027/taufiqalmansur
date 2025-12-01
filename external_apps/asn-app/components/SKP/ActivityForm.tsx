@@ -3,8 +3,8 @@ import { Camera, Image as ImageIcon, Save, RefreshCw, X, Loader2 } from 'lucide-
 import { Activity } from '../../types';
 
 interface ActivityFormProps {
-  onSubmit: (activity: Omit<Activity, 'id'>) => void;
-  onUpdate: (activity: Activity) => void;
+  onSubmit: (activity: Omit<Activity, 'id'>, imageFile?: File) => void;
+  onUpdate: (activity: Activity, imageFile?: File) => void;
   onCancelEdit: () => void;
   initialData: Activity | null;
   selectedMonth: string; // YYYY-MM
@@ -15,8 +15,9 @@ export const ActivityForm: React.FC<ActivityFormProps> = ({ onSubmit, onUpdate, 
   const [location, setLocation] = useState('');
   const [description, setDescription] = useState('');
   const [image, setImage] = useState<string | null>(null);
+  const [selectedFile, setSelectedFile] = useState<File | undefined>(undefined);
   const [isProcessing, setIsProcessing] = useState(false);
-  
+
   const fileInputRef = useRef<HTMLInputElement>(null);
   const cameraInputRef = useRef<HTMLInputElement>(null);
 
@@ -26,6 +27,7 @@ export const ActivityForm: React.FC<ActivityFormProps> = ({ onSubmit, onUpdate, 
       setLocation(initialData.location);
       setDescription(initialData.description);
       setImage(initialData.image);
+      setSelectedFile(undefined); // Reset file on edit load
     } else {
       resetForm();
     }
@@ -34,24 +36,26 @@ export const ActivityForm: React.FC<ActivityFormProps> = ({ onSubmit, onUpdate, 
   const resetForm = () => {
     const today = new Date();
     const todayStr = today.toISOString().split('T')[0];
-    
+
     // Check if "Today" is within the selected month
     if (todayStr.startsWith(selectedMonth)) {
-        setDate(todayStr);
+      setDate(todayStr);
     } else {
-        // If viewing a past/future month, default to the 1st of that month
-        // This prevents accidental entry of wrong month dates
-        setDate(`${selectedMonth}-01`);
+      // If viewing a past/future month, default to the 1st of that month
+      // This prevents accidental entry of wrong month dates
+      setDate(`${selectedMonth}-01`);
     }
-    
+
     setLocation('');
     setDescription('');
     setImage(null);
+    setSelectedFile(undefined);
   };
 
   // Compress image logic to keep PDF size small
   const processImage = (file: File) => {
     setIsProcessing(true);
+    setSelectedFile(file); // Store file for upload
     const reader = new FileReader();
     reader.onload = (event) => {
       const img = new Image();
@@ -60,22 +64,22 @@ export const ActivityForm: React.FC<ActivityFormProps> = ({ onSubmit, onUpdate, 
         const canvas = document.createElement('canvas');
         const MAX_WIDTH = 800; // Good enough for A4 print
         const scaleSize = MAX_WIDTH / img.width;
-        
+
         // Calculate new dimensions
         let width = img.width;
         let height = img.height;
-        
+
         if (width > MAX_WIDTH) {
-            width = MAX_WIDTH;
-            height = img.height * scaleSize;
+          width = MAX_WIDTH;
+          height = img.height * scaleSize;
         }
 
         canvas.width = width;
         canvas.height = height;
-        
+
         const ctx = canvas.getContext('2d');
         ctx?.drawImage(img, 0, 0, width, height);
-        
+
         // Compress to JPEG with 0.7 quality
         const compressedDataUrl = canvas.toDataURL('image/jpeg', 0.7);
         setImage(compressedDataUrl);
@@ -100,15 +104,15 @@ export const ActivityForm: React.FC<ActivityFormProps> = ({ onSubmit, onUpdate, 
         date,
         location,
         description,
-        image
-      });
+        image // Keep existing image URL/Base64 if no new file
+      }, selectedFile);
     } else {
       onSubmit({
         date,
         location,
         description,
-        image
-      });
+        image: null // Image will be handled by backend return
+      }, selectedFile);
       resetForm();
     }
   };
@@ -120,9 +124,9 @@ export const ActivityForm: React.FC<ActivityFormProps> = ({ onSubmit, onUpdate, 
           {initialData ? 'Edit Kegiatan' : 'Input Kegiatan Baru'}
         </h2>
         {initialData && (
-          <button 
-            type="button" 
-            onClick={onCancelEdit} 
+          <button
+            type="button"
+            onClick={onCancelEdit}
             className="text-gray-500 hover:text-red-500"
             title="Batalkan Edit"
           >
@@ -180,7 +184,7 @@ export const ActivityForm: React.FC<ActivityFormProps> = ({ onSubmit, onUpdate, 
           <label className="block text-sm font-semibold text-gray-700 mb-2">
             Dokumentasi Foto
           </label>
-          
+
           <div className="grid grid-cols-2 gap-4 mb-4">
             <button
               type="button"
@@ -201,7 +205,7 @@ export const ActivityForm: React.FC<ActivityFormProps> = ({ onSubmit, onUpdate, 
               <span className="font-medium">Pilih Galeri</span>
             </button>
           </div>
-          
+
           {/* Hidden Inputs */}
           <input
             type="file"
@@ -221,12 +225,12 @@ export const ActivityForm: React.FC<ActivityFormProps> = ({ onSubmit, onUpdate, 
 
           {/* Loading / Image Preview */}
           {isProcessing && (
-             <div className="w-full h-48 flex items-center justify-center bg-gray-50 rounded-lg border border-gray-200">
-               <div className="flex flex-col items-center text-blue-600">
-                 <Loader2 size={30} className="animate-spin mb-2" />
-                 <span className="text-sm font-medium">Mengompres Foto...</span>
-               </div>
-             </div>
+            <div className="w-full h-48 flex items-center justify-center bg-gray-50 rounded-lg border border-gray-200">
+              <div className="flex flex-col items-center text-blue-600">
+                <Loader2 size={30} className="animate-spin mb-2" />
+                <span className="text-sm font-medium">Mengompres Foto...</span>
+              </div>
+            </div>
           )}
 
           {!isProcessing && image && (

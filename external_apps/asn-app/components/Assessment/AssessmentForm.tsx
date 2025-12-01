@@ -3,8 +3,8 @@ import { Assessment } from '../../types';
 import { Save, RefreshCw, X, Camera, Image as ImageIcon, Loader2, Plus, Trash2 } from 'lucide-react';
 
 interface AssessmentFormProps {
-  onSubmit: (data: Omit<Assessment, 'id' | 'timestamp'>) => void;
-  onUpdate: (data: Assessment) => void;
+  onSubmit: (data: Omit<Assessment, 'id' | 'timestamp'>, imageFiles?: File[]) => void;
+  onUpdate: (data: Assessment, imageFiles?: File[]) => void;
   onCancelEdit: () => void;
   initialData: Assessment | null;
   forcedIndicator?: string; // Optional prop to lock indicator
@@ -36,6 +36,7 @@ export const AssessmentForm: React.FC<AssessmentFormProps> = ({
   const [customTitle, setCustomTitle] = useState('');
   const [description, setDescription] = useState('');
   const [images, setImages] = useState<string[]>([]);
+  const [selectedFiles, setSelectedFiles] = useState<File[]>([]);
   const [isProcessing, setIsProcessing] = useState(false);
 
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -57,6 +58,7 @@ export const AssessmentForm: React.FC<AssessmentFormProps> = ({
       } else {
         setImages([]);
       }
+      setSelectedFiles([]); // Reset files on edit load
     } else {
       // New Entry Mode
       resetForm();
@@ -68,6 +70,7 @@ export const AssessmentForm: React.FC<AssessmentFormProps> = ({
     setCustomTitle('');
     setDescription('');
     setImages([]);
+    setSelectedFiles([]);
 
     // Set default date based on selected month
     let defaultDate = new Date().toISOString().split('T')[0];
@@ -90,6 +93,7 @@ export const AssessmentForm: React.FC<AssessmentFormProps> = ({
 
   const processImage = (file: File) => {
     setIsProcessing(true);
+    setSelectedFiles(prev => [...prev, file]); // Store file
     const reader = new FileReader();
     reader.onload = (event) => {
       const img = new Image();
@@ -129,6 +133,26 @@ export const AssessmentForm: React.FC<AssessmentFormProps> = ({
 
   const removeImage = (index: number) => {
     setImages(prev => prev.filter((_, i) => i !== index));
+    // Also remove from selectedFiles if it was a new upload
+    // Note: This logic is tricky if we mix existing images (URL) and new images (File).
+    // But here 'images' state contains both existing URLs and new Base64 previews.
+    // 'selectedFiles' only contains new files.
+    // If we remove an image, we need to know if it was a new file or existing.
+    // For simplicity, let's assume we clear all selectedFiles if user removes ANY image, 
+    // OR we just try to sync indices. 
+    // Actually, since we append new files to the end, if the index is >= initialData.images.length, it's a new file.
+
+    // Better approach: Re-uploading is safer. 
+    // But let's try to handle it.
+    // If initialData exists, we have X existing images.
+    // If index < X, we are removing an existing image.
+    // If index >= X, we are removing a new file at index - X.
+
+    const existingCount = (initialData?.images?.length || (initialData?.image ? 1 : 0));
+    if (index >= existingCount) {
+      const fileIndex = index - existingCount;
+      setSelectedFiles(prev => prev.filter((_, i) => i !== fileIndex));
+    }
   };
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -140,7 +164,7 @@ export const AssessmentForm: React.FC<AssessmentFormProps> = ({
       date,
       customTitle: isCustom ? customTitle : undefined,
       description,
-      images,
+      images, // This contains mixed URLs/Base64, backend might ignore if files are sent
       image: images.length > 0 ? images[0] : null
     };
 
@@ -148,12 +172,13 @@ export const AssessmentForm: React.FC<AssessmentFormProps> = ({
       onUpdate({
         ...initialData,
         ...payload
-      });
+      }, selectedFiles);
     } else {
-      onSubmit(payload);
+      onSubmit(payload, selectedFiles);
       // Reset fields for next entry, but keep indicator/date context
       setDescription('');
       setImages([]);
+      setSelectedFiles([]);
       setCustomTitle('');
     }
   };

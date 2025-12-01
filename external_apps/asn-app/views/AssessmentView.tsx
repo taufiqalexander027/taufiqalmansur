@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { Assessment, UserProfile } from '../types';
-import { getAssessments, saveAssessments, getUserProfile } from '../services/storageService';
+import { getAssessments, saveAssessment, updateAssessment, deleteAssessment, getUserProfile } from '../services/apiService';
 import { AssessmentForm } from '../components/Assessment/AssessmentForm';
 import { AssessmentPrintLayout } from '../components/Assessment/AssessmentPrintLayout';
 import { UserProfileForm } from '../components/UserProfileForm';
@@ -64,8 +64,13 @@ export const AssessmentView: React.FC = () => {
   const YEARS = Array.from({ length: 6 }, (_, i) => currentYearInt - 1 + i);
 
   useEffect(() => {
-    setAssessments(getAssessments());
-    setUserProfile(getUserProfile());
+    const loadData = async () => {
+      const allAssessments = await getAssessments();
+      setAssessments(allAssessments);
+      const profile = await getUserProfile();
+      setUserProfile(profile);
+    };
+    loadData();
   }, []);
 
   // Filter Logic
@@ -90,35 +95,36 @@ export const AssessmentView: React.FC = () => {
   }, [assessments, selectedPeriod, selectedIndicator, currentFormDate]);
 
   // Handlers
-  const handleSave = (data: Omit<Assessment, 'id' | 'timestamp'>) => {
+  const handleSave = async (data: Omit<Assessment, 'id' | 'timestamp'>, imageFiles?: File[]) => {
     // If editing existing
     if (editingAssessment) {
-      const updatedList = assessments.map(a =>
-        a.id === editingAssessment.id
-          ? { ...a, ...data }
-          : a
-      );
-      const saved = saveAssessments(updatedList);
-      setAssessments(saved);
-      setEditingAssessment(null); // Clear edit mode after update
+      const updated = await updateAssessment({
+        ...editingAssessment,
+        ...data
+      }, imageFiles);
+
+      if (updated) {
+        setAssessments(prev => prev.map(a => a.id === editingAssessment.id ? updated : a));
+        setEditingAssessment(null); // Clear edit mode after update
+      }
     } else {
       // Create new
       const timestamp = new Date().toISOString();
-      const newItem: Assessment = {
+      const saved = await saveAssessment({
         ...data,
-        id: Date.now().toString(),
-        timestamp: timestamp
-      };
-      const updated = saveAssessments([...assessments, newItem]);
-      setAssessments(updated);
+        timestamp
+      }, imageFiles);
+
+      if (saved) {
+        setAssessments(prev => [...prev, saved]);
+      }
     }
   };
 
-  const handleDelete = (id: string) => {
+  const handleDelete = async (id: string) => {
     if (confirm('Hapus penilaian ini?')) {
-      const updated = assessments.filter(a => a.id !== id);
-      const saved = saveAssessments(updated);
-      setAssessments(saved);
+      await deleteAssessment(id);
+      setAssessments(prev => prev.filter(a => a.id !== id));
       if (editingAssessment?.id === id) {
         setEditingAssessment(null);
       }

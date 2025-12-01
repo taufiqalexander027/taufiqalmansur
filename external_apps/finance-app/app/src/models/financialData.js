@@ -1,7 +1,11 @@
 /**
  * Financial Data Model
  * Stores manual input for the financial realization table.
+ * ADAPTER: Fetches from API Services and formats for FinancialTable.
  */
+
+import { getAllRekening } from '../services/masterDataService';
+import { getTransactionData } from '../services/transactionService';
 
 export const MONTHS = [
     { key: 'jan', label: 'Januari' },
@@ -62,16 +66,72 @@ export const createFinancialRecord = ({
     return record;
 };
 
-// Storage Key
-const STORAGE_KEY = 'financial_system_data';
+// --- API Adapter Functions ---
 
-export const getFinancialData = () => {
-    const data = localStorage.getItem(STORAGE_KEY);
-    return data ? JSON.parse(data) : [];
+export const getFinancialData = async () => {
+    try {
+        const [rekenings, transactions] = await Promise.all([
+            getAllRekening(),
+            getTransactionData()
+        ]);
+
+        // Merge Master Data (Rekenings) with Transactions
+        return rekenings.map(rek => {
+            const record = {
+                id: rek.id,
+                seksi: rek.seksiId, // Map seksiId to seksi for frontend compatibility
+                program: rek.program?.nama || '',
+                kegiatan: rek.kegiatan?.nama || '',
+                subKegiatan: rek.subKegiatan?.nama || '',
+                kodeRekening: rek.kode,
+                uraian: rek.uraian,
+                sumberDana: rek.sumberDana[0] || 'PAD MURNI', // Assuming 1 sumber dana per row for now
+                anggaran: {
+                    sebelum: 0,
+                    setelah: 0,
+                    papbd: rek.anggaranPAPBD[rek.sumberDana[0]] || 0
+                },
+                realisasi: {}
+            };
+
+            // Initialize months
+            MONTHS.forEach(m => {
+                record.realisasi[m.key] = { dkkb: 0, realisasi: 0 };
+            });
+
+            // Fill transactions
+            // transactions.realisasi is array of { rekeningId, bulan, nilai, ... }
+            transactions.realisasi.forEach(t => {
+                if (t.rekeningId === rek.id) {
+                    const monthKey = m => m.label.toLowerCase() === t.bulan.toLowerCase();
+                    const m = MONTHS.find(monthKey);
+                    if (m) {
+                        record.realisasi[m.key].realisasi = t.nilai;
+                    }
+                }
+            });
+
+            transactions.dkkb.forEach(t => {
+                if (t.rekeningId === rek.id) {
+                    const monthKey = m => m.label.toLowerCase() === t.bulan.toLowerCase();
+                    const m = MONTHS.find(monthKey);
+                    if (m) {
+                        record.realisasi[m.key].dkkb = t.nilai;
+                    }
+                }
+            });
+
+            return record;
+        });
+
+    } catch (error) {
+        console.error('Error fetching financial data:', error);
+        return [];
+    }
 };
 
+// Deprecated: Use apiService.saveTransaction directly
 export const saveFinancialData = (data) => {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
-    console.log('✅ Financial data saved successfully to localStorage');
-    console.log('   Total records:', data.length);
+    console.warn('saveFinancialData is deprecated. Use apiService directly.');
 };
+

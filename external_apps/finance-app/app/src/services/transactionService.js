@@ -1,83 +1,55 @@
 /**
  * Transaction Service
  * Handle CRUD operations for transactions (DKKB & Realisasi)
- * Uses localStorage for persistence
+ * Uses API for persistence
  */
 
-import { createYearData, createTransaction } from '../models/transactionData.js';
-
-const STORAGE_KEY = 'realisasi_keuangan_transactions';
+import { getTransactions, saveTransaction as apiSaveTransaction } from './apiService';
 
 /**
- * Load transaction data from storage
+ * Load transaction data from API
+ * Returns { dkkb: [], realisasi: [] }
  */
-export const getTransactionData = () => {
+export const getTransactionData = async (tahun = 2025) => {
     try {
-        const data = localStorage.getItem(STORAGE_KEY);
-        return data ? JSON.parse(data) : createYearData();
+        const transactions = await getTransactions(tahun);
+        return {
+            dkkb: transactions.filter(t => t.type === 'DKKB'),
+            realisasi: transactions.filter(t => t.type === 'REALISASI')
+        };
     } catch (error) {
         console.error('Error loading transaction data:', error);
-        return createYearData();
-    }
-};
-
-/**
- * Save transaction data to storage
- */
-export const saveTransactionData = (data) => {
-    try {
-        localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
-        return true;
-    } catch (error) {
-        console.error('Error saving transaction data:', error);
-        return false;
+        return { dkkb: [], realisasi: [] };
     }
 };
 
 /**
  * Save a single transaction (DKKB or Realisasi)
  */
-export const saveTransaction = (transaction) => {
-    const data = getTransactionData();
-    const collection = transaction.type === 'DKKB' ? data.dkkb : data.realisasi;
-
-    // Check if exists (update) or new (push)
-    const index = collection.findIndex(t => t.id === transaction.id);
-
-    if (index >= 0) {
-        collection[index] = { ...collection[index], ...transaction, updatedAt: new Date().toISOString() };
-    } else {
-        collection.push(transaction);
-    }
-
-    return saveTransactionData(data);
+export const saveTransaction = async (transaction) => {
+    return await apiSaveTransaction(transaction);
 };
 
 /**
  * Batch save transactions
  */
-export const saveBatchTransactions = (transactions) => {
-    const data = getTransactionData();
-
-    transactions.forEach(t => {
-        const collection = t.type === 'DKKB' ? data.dkkb : data.realisasi;
-        const index = collection.findIndex(existing => existing.id === t.id);
-
-        if (index >= 0) {
-            collection[index] = { ...collection[index], ...t, updatedAt: new Date().toISOString() };
-        } else {
-            collection.push(t);
-        }
-    });
-
-    return saveTransactionData(data);
+export const saveBatchTransactions = async (transactions) => {
+    try {
+        const promises = transactions.map(t => apiSaveTransaction(t));
+        await Promise.all(promises);
+        return true;
+    } catch (error) {
+        console.error('Batch save failed:', error);
+        return false;
+    }
 };
 
 /**
  * Get all transactions for a specific month
+ * NOTE: This now requires passing the full data object, or fetching it first.
+ * To avoid refactoring everything, we'll assume the component fetches data first.
  */
-export const getTransactionsByMonth = (bulan) => {
-    const data = getTransactionData();
+export const filterTransactionsByMonth = (data, bulan) => {
     return {
         dkkb: data.dkkb.filter(t => t.bulan === bulan),
         realisasi: data.realisasi.filter(t => t.bulan === bulan)
@@ -87,8 +59,7 @@ export const getTransactionsByMonth = (bulan) => {
 /**
  * Get transactions by rekening ID
  */
-export const getTransactionsByRekening = (rekeningId) => {
-    const data = getTransactionData();
+export const filterTransactionsByRekening = (data, rekeningId) => {
     return {
         dkkb: data.dkkb.filter(t => t.rekeningId === rekeningId),
         realisasi: data.realisasi.filter(t => t.rekeningId === rekeningId)
@@ -134,9 +105,3 @@ export const getTransactionValue = (transactionArray, rekeningId, sumberDana, bu
     return transaction ? transaction.nilai : 0;
 };
 
-/**
- * Reset all transaction data
- */
-export const resetTransactions = () => {
-    return saveTransactionData(createYearData());
-};

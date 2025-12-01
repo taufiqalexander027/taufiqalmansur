@@ -121,6 +121,11 @@ const FloatingNews = () => {
                 <div className="news-grid">
                     {(featuredNews.length > 0 ? featuredNews : newsItems.slice(0, 3)).map((news) => (
                         <div key={news.id} className="news-card glass">
+                            {news.image_url && (
+                                <div className="news-card-image">
+                                    <img src={news.image_url} alt={news.title} />
+                                </div>
+                            )}
                             <div className="news-card-header">
                                 <span className="news-card-category">{news.category_name || 'Umum'}</span>
                                 <span className="news-card-time">{formatTime(news.published_at)}</span>

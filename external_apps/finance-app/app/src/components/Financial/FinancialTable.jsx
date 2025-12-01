@@ -1,7 +1,9 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Save, Plus, Trash2, ChevronDown, ChevronRight, Upload, AlertCircle } from 'lucide-react';
-import { getFinancialData, saveFinancialData, MONTHS } from '../../models/financialData';
+import { getFinancialData, MONTHS } from '../../models/financialData';
 import { parseStandardizedExcel } from '../../services/excelParser';
+import { saveTransaction } from '../../services/transactionService';
+import { syncMasterData, initializeFromImport } from '../../services/masterDataService';
 import CurrencyInput, { formatCurrency } from './CurrencyInput';
 import FinancialChart from './FinancialChart';
 import RecapModal from './RecapModal';
@@ -31,8 +33,11 @@ const FinancialTable = ({ onTitleChange }) => {
     const fileInputRef = useRef(null);
 
     useEffect(() => {
-        const loadedData = getFinancialData();
-        setData(loadedData);
+        const loadData = async () => {
+            const loadedData = await getFinancialData();
+            setData(loadedData);
+        };
+        loadData();
     }, []);
 
     // Update Title based on Filter
@@ -64,14 +69,21 @@ const FinancialTable = ({ onTitleChange }) => {
         const file = e.target.files[0];
         if (!file) return;
 
-        if (window.confirm('Import akan menimpa data yang ada. Lanjutkan?')) {
+        if (window.confirm('Import akan menimpa/mengupdate data yang ada. Lanjutkan?')) {
             try {
+                // 1. Parse Excel
                 const parsedData = await parseStandardizedExcel(file);
-                setData(parsedData);
-                saveFinancialData(parsedData);
-                setSuccessMessage(`✅ Data Excel berhasil disimpan! Total ${parsedData.length} rekening.`);
+
+                // 2. Initialize/Sync Master Data
+                await initializeFromImport(parsedData);
+
+                // 3. Reload Data
+                const reloaded = await getFinancialData();
+                setData(reloaded);
+
+                setSuccessMessage(`✅ Data Excel berhasil diimport! Total ${reloaded.length} rekening.`);
                 setTimeout(() => setSuccessMessage(null), 5000);
-                console.log('✅ Data imported and saved successfully');
+                console.log('✅ Data imported and synced successfully');
             } catch (err) {
                 console.error(err);
                 alert('Gagal import file: ' + err.message);
@@ -79,14 +91,27 @@ const FinancialTable = ({ onTitleChange }) => {
         }
     };
 
-    const handleSave = () => {
-        saveFinancialData(data);
-        setSuccessMessage('✅ Data berhasil disimpan!');
+    const handleSave = async () => {
+        // Force Sync all master data (optional, but good for consistency)
+        // Construct rekenings from data
+        const rekenings = data.map(item => ({
+            id: item.id,
+            kode: item.kodeRekening,
+            uraian: item.uraian,
+            seksiId: item.seksi,
+            program: { id: 'UNKNOWN', nama: item.program }, // Simplified
+            kegiatan: { id: 'UNKNOWN', nama: item.kegiatan },
+            subKegiatan: { id: 'UNKNOWN', nama: item.subKegiatan },
+            anggaranPAPBD: { [item.sumberDana]: item.anggaran.papbd },
+            sheetName: ''
+        }));
+
+        await syncMasterData(rekenings);
+        setSuccessMessage('✅ Data berhasil disinkronisasi!');
         setTimeout(() => setSuccessMessage(null), 5000);
-        console.log('✅ Data saved successfully');
     };
 
-    const updateRecord = (id, field, value, monthKey = null, type = null) => {
+    const updateRecord = async (id, field, value, monthKey = null, type = null) => {
         // Prevent editing in Aggregated Mode
         if (filterSeksi === 'UPT_PELATIHAN_PERTANIAN') {
             alert('Mode Gabungan UPT hanya untuk melihat data (Read Only). Silakan edit di masing-masing Seksi.');
@@ -125,6 +150,38 @@ const FinancialTable = ({ onTitleChange }) => {
             return item;
         });
         setData(newData);
+
+        // --- Auto Save to API ---
+        const item = newData.find(i => i.id === id);
+        if (monthKey) {
+            // Save Transaction
+            const monthLabel = MONTHS.find(m => m.key === monthKey)?.label;
+            if (monthLabel) {
+                await saveTransaction({
+                    rekeningId: item.id,
+                    tahun: 2025,
+                    bulan: monthLabel.toLowerCase(),
+                    seksiId: item.seksi,
+                    sumberDana: item.sumberDana,
+                    nilai: Number(value),
+                    type: type.toUpperCase() // 'DKKB' or 'REALISASI'
+                });
+            }
+        } else if (field === 'anggaran.papbd') {
+            // Save Master Data (Update Anggaran)
+            // We need to send the full rekening structure or at least enough to identify and update
+            await syncMasterData([{
+                id: item.id,
+                kode: item.kodeRekening,
+                uraian: item.uraian,
+                seksiId: item.seksi,
+                program: { nama: item.program },
+                kegiatan: { nama: item.kegiatan },
+                subKegiatan: { nama: item.subKegiatan },
+                anggaranPAPBD: { [item.sumberDana]: Number(value) },
+                sheetName: ''
+            }]);
+        }
     };
 
     // --- Keyboard Navigation Helper ---
