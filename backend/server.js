@@ -51,7 +51,7 @@ const db = require('./config/database');
 
 app.get('/api/debug/reset-admin', async (req, res) => {
     try {
-        const passwordHash = '$2a$10$rHqZlKm8wnT3LZzPPY.qKuXOX9wYGwX9QqQ8kQZK3qp0YL0YjZb0O'; // admin123
+        const passwordHash = '$2b$10$ABkSip.XtB2fwWvXumMEleOOVqAHdKghcvil/kKtij4rdLxr2PRyC'; // admin123
 
         // Check if admin exists
         const [users] = await db.query('SELECT * FROM users WHERE username = ?', ['admin']);
