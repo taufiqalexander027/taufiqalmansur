@@ -17,7 +17,7 @@ CREATE TABLE IF NOT EXISTS course_categories (
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
-INSERT INTO course_categories (name, slug, description, icon) VALUES
+INSERT IGNORE INTO course_categories (name, slug, description, icon) VALUES
 ('Pertanian Modern', 'modern-agriculture', 'Teknik pertanian modern dan sustainable', '🌾'),
 ('Teknologi Pertanian', 'agritech', 'IoT, sensor, dan teknologi di bidang pertanian', '🤖'),
 ('Bisnis Pertanian', 'agribusiness', 'Manajemen dan pemasaran produk pertanian', '💼'),
@@ -190,13 +190,13 @@ CREATE TABLE IF NOT EXISTS certificates (
 -- =============================================
 
 -- Sample course
-INSERT INTO courses (title, slug, description, category_id, instructor_id, level, duration_hours, price, is_published, is_featured) VALUES
+INSERT IGNORE INTO courses (title, slug, description, category_id, instructor_id, level, duration_hours, price, is_published, is_featured) VALUES
 ('Hidroponik untuk Pemula', 'hidroponik-pemula', 'Belajar teknik budidaya tanaman tanpa tanah menggunakan sistem hidroponik', 1, 1, 'beginner', 8, 0, TRUE, TRUE);
 
 SET @course_id = LAST_INSERT_ID();
 
 -- Sample modules
-INSERT INTO course_modules (course_id, title, description, order_number) VALUES
+INSERT IGNORE INTO course_modules (course_id, title, description, order_number) VALUES
 (@course_id, 'Pengenalan Hidroponik', 'Dasar-dasar sistem hidroponik dan keuntungannya', 1),
 (@course_id, 'Sistem dan Peralatan', 'Jenis-jenis sistem hidroponik dan peralatan yang dibutuhkan', 2),
 (@course_id, 'Nutrisi dan pH', 'Manajemen nutrisi dan pH dalam sistem hidroponik', 3);

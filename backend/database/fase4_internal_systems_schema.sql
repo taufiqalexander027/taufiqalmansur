@@ -16,7 +16,7 @@ CREATE TABLE IF NOT EXISTS asn_activity_types (
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
-INSERT INTO asn_activity_types (name, slug, description) VALUES
+INSERT IGNORE INTO asn_activity_types (name, slug, description) VALUES
 ('Dokumentasi Kinerja Harian', 'daily-performance', 'Laporan aktivitas harian ASN'),
 ('Self Assessment Berakhlak', 'berakhlak-assessment', 'Penilaian mandiri nilai-nilai Berakhlak'),
 ('Laporan Kinerja Umum', 'general-performance', 'Laporan kinerja umum lainnya');
@@ -153,14 +153,14 @@ CREATE TABLE IF NOT EXISTS financial_realizations (
 -- Sample Data
 -- =============================================
 
-INSERT INTO financial_programs (code, name, description) VALUES
+INSERT IGNORE INTO financial_programs (code, name, description) VALUES
 ('1.02', 'PROGRAM PENYULUHAN PERTANIAN', 'Program penyuluhan dan pendampingan petani'),
 ('1.06', 'PROGRAM PENUNJANG URUSAN PEMERINTAHAN DAERAH PROVINSI', 'Program penunjang urusan pemerintahan');
 
 SET @prog1 = (SELECT id FROM financial_programs WHERE code = '1.02');
 SET @prog2 = (SELECT id FROM financial_programs WHERE code = '1.06');
 
-INSERT INTO financial_activities (program_id, code, name) VALUES
+INSERT IGNORE INTO financial_activities (program_id, code, name) VALUES
 (@prog1, '1.02.01', 'Pelatihan dan Penyuluhan Petani'),
 (@prog2, '1.06.01', 'Perencanaan, Penganggaran, dan Evaluasi Kinerja'),
 (@prog2, '1.06.02', 'Administrasi Keuangan');

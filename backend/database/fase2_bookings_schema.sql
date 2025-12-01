@@ -19,7 +19,7 @@ CREATE TABLE IF NOT EXISTS service_types (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- Insert default service types
-INSERT INTO service_types (name, slug, description, icon) VALUES
+INSERT IGNORE INTO service_types (name, slug, description, icon) VALUES
 ('Kunjungan Lapang', 'field-visit', 'Kunjungan ke lokasi pertanian dan pelatihan', '🚜'),
 ('Sewa Gedung', 'venue-rental', 'Penyewaan gedung untuk acara dan kegiatan', '🏢'),
 ('Sewa Peralatan', 'equipment-rental', 'Penyewaan peralatan pertanian', '🛠️');
@@ -45,7 +45,7 @@ CREATE TABLE IF NOT EXISTS facilities (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- Insert sample facilities
-INSERT INTO facilities (service_type_id, name, description, capacity, price_per_day, amenities) VALUES
+INSERT IGNORE INTO facilities (service_type_id, name, description, capacity, price_per_day, amenities) VALUES
 (2, 'Aula Utama', 'Ruang serbaguna dengan kapasitas besar untuk seminar dan workshop', 200, 2000000, 'AC, Proyektor, Sound System, Kursi, Meja'),
 (2, 'Ruang Rapat Pimpinan', 'Ruang meeting eksklusif dengan fasilitas lengkap', 30, 500000, 'AC, LED TV, Whiteboard, Wifi'),
 (3, 'Traktor Pertanian', 'Traktor untuk pengolahan lahan', NULL, 750000, 'BBM tidak termasuk'),
@@ -63,7 +63,7 @@ CREATE TABLE IF NOT EXISTS booking_statuses (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- Insert booking statuses
-INSERT INTO booking_statuses (name, description, color) VALUES
+INSERT IGNORE INTO booking_statuses (name, description, color) VALUES
 ('pending', 'Menunggu persetujuan admin', '#FFA500'),
 ('approved', 'Booking disetujui', '#4CAF50'),
 ('rejected', 'Booking ditolak', '#F44336'),
