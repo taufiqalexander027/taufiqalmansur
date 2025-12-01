@@ -9,6 +9,7 @@ import LoginPage from './components/LoginPage';
 import FinancialReports from './components/FinancialReports';
 import AdminDashboard from './components/Admin/AdminDashboard';
 import ASNDashboard from './components/ASNDashboard';
+import NewsDetail from './components/NewsDetail';
 import './index.css';
 
 // Protected Route Component
@@ -100,6 +101,9 @@ function App() {
               </ProtectedRoute>
             }
           />
+
+          {/* Public News Detail Route */}
+          <Route path="/news/:slug" element={<NewsDetail />} />
         </Routes>
       </Router>
     </AuthProvider>

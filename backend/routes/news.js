@@ -2,6 +2,7 @@ const express = require('express');
 const router = express.Router();
 const newsController = require('../controllers/newsController');
 const { auth, checkRole, logActivity } = require('../middleware/auth');
+const upload = require('../middleware/upload');
 
 // Public routes
 router.get('/', newsController.getAllNews);
@@ -12,6 +13,7 @@ router.get('/:slug', newsController.getNewsBySlug);
 router.post('/',
     auth,
     checkRole('admin'),
+    upload.single('image'),
     logActivity('CREATE', 'news'),
     newsController.createNews
 );
@@ -19,6 +21,7 @@ router.post('/',
 router.put('/:id',
     auth,
     checkRole('admin'),
+    upload.single('image'),
     logActivity('UPDATE', 'news'),
     newsController.updateNews
 );

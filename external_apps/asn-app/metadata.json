@@ -1,0 +1,7 @@
+{
+  "name": "e-laporan-asn-jatim",
+  "description": "Aplikasi Laporan Kinerja Harian dan Self Assessment Berakhlak untuk ASN Jawa Timur",
+  "requestFramePermissions": [
+    "camera"
+  ]
+}

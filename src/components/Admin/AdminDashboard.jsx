@@ -20,7 +20,8 @@ const AdminDashboard = () => {
         content: '',
         category_id: '',
         is_published: false,
-        is_featured: false
+        is_featured: false,
+        image: null
     });
 
     // Redirect if not admin
@@ -63,10 +64,22 @@ const AdminDashboard = () => {
         e.preventDefault();
 
         try {
+            const data = new FormData();
+            data.append('title', formData.title);
+            data.append('excerpt', formData.excerpt);
+            data.append('content', formData.content);
+            data.append('category_id', formData.category_id);
+            data.append('is_published', formData.is_published ? '1' : '0');
+            data.append('is_featured', formData.is_featured ? '1' : '0');
+
+            if (formData.image) {
+                data.append('image', formData.image);
+            }
+
             if (editingNews) {
-                await newsAPI.update(editingNews.id, formData);
+                await newsAPI.update(editingNews.id, data);
             } else {
-                await newsAPI.create(formData);
+                await newsAPI.create(data);
             }
 
             // Reset form and refresh data
@@ -76,7 +89,8 @@ const AdminDashboard = () => {
                 content: '',
                 category_id: '',
                 is_published: false,
-                is_featured: false
+                is_featured: false,
+                image: null
             });
             setEditingNews(null);
             setShowForm(false);
@@ -96,22 +110,13 @@ const AdminDashboard = () => {
             content: newsItem.content,
             category_id: newsItem.category_id,
             is_published: newsItem.is_published,
-            is_featured: newsItem.is_featured
+            is_featured: newsItem.is_featured,
+            image: null // Reset image on edit
         });
         setShowForm(true);
     };
 
-    const handleDelete = async (id) => {
-        if (window.confirm('Yakin ingin menghapus berita ini?')) {
-            try {
-                await newsAPI.delete(id);
-                fetchData();
-                alert('Berita berhasil dihapus!');
-            } catch (error) {
-                alert('Error: ' + (error.response?.data?.message || 'Gagal menghapus berita'));
-            }
-        }
-    };
+    // ... handleDelete ...
 
     const handleLogout = () => {
         logout();
@@ -124,7 +129,7 @@ const AdminDashboard = () => {
 
     return (
         <div className="admin-dashboard">
-            {/* Header */}
+            {/* ... Header ... */}
             <div className="admin-header glass-dark">
                 <div className="admin-header-content">
                     <div>
@@ -132,6 +137,12 @@ const AdminDashboard = () => {
                         <p className="admin-subtitle">Selamat datang, {user?.full_name}</p>
                     </div>
                     <div className="admin-actions">
+                        <a href="https://keuangan.uptpelatihanpertanian.id" target="_blank" rel="noopener noreferrer" className="btn btn-outline" style={{ marginRight: '0.5rem' }}>
+                            💰 Keuangan
+                        </a>
+                        <a href="https://skp.uptpelatihanpertanian.id" target="_blank" rel="noopener noreferrer" className="btn btn-outline" style={{ marginRight: '0.5rem' }}>
+                            📝 SKP
+                        </a>
                         <button
                             className="btn btn-primary"
                             onClick={() => {
@@ -143,7 +154,8 @@ const AdminDashboard = () => {
                                     content: '',
                                     category_id: '',
                                     is_published: false,
-                                    is_featured: false
+                                    is_featured: false,
+                                    image: null
                                 });
                             }}
                         >
@@ -160,7 +172,7 @@ const AdminDashboard = () => {
             </div>
 
             <div className="admin-container">
-                {/* Stats */}
+                {/* ... Stats ... */}
                 <div className="admin-stats">
                     <div className="stat-card glass">
                         <div className="stat-value">{news.length}</div>
@@ -210,6 +222,18 @@ const AdminDashboard = () => {
                                         ))}
                                     </select>
                                 </div>
+                            </div>
+
+                            <div className="form-group">
+                                <label>Gambar Utama</label>
+                                <input
+                                    type="file"
+                                    name="image"
+                                    onChange={(e) => setFormData({ ...formData, image: e.target.files[0] })}
+                                    accept="image/*"
+                                    className="form-input"
+                                />
+                                <small style={{ color: '#aaa' }}>Format: JPG, PNG, GIF (Max 5MB)</small>
                             </div>
 
                             <div className="form-group">

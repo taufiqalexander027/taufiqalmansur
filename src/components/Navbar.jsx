@@ -43,12 +43,12 @@ const Navbar = ({ isLoggedIn, user, onLogout }) => {
           {isLoggedIn && (user?.role === 'staff' || user?.role === 'admin') && (
             <>
               <li>
-                <a href="/financial-reports" className="nav-link">
+                <a href="https://keuangan.uptpelatihanpertanian.id" target="_blank" rel="noopener noreferrer" className="nav-link">
                   💰 Keuangan
                 </a>
               </li>
               <li>
-                <a href="/asn-reports" className="nav-link">
+                <a href="https://skp.uptpelatihanpertanian.id" target="_blank" rel="noopener noreferrer" className="nav-link">
                   📝 Laporan ASN
                 </a>
               </li>

@@ -139,10 +139,19 @@ exports.createNews = async (req, res) => {
         const author_id = req.user.id;
         const published_at = is_published ? new Date() : null;
 
+        // Handle image upload
+        let image_url = null;
+        if (req.file) {
+            // Construct full URL
+            const protocol = req.protocol;
+            const host = req.get('host');
+            image_url = `${protocol}://${host}/uploads/news/${req.file.filename}`;
+        }
+
         const [result] = await db.query(
-            `INSERT INTO news (title, slug, excerpt, content, category_id, author_id, is_published, is_featured, published_at)
-       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`,
-            [title, slug, excerpt, content, category_id, author_id, is_published, is_featured, published_at]
+            `INSERT INTO news (title, slug, excerpt, content, category_id, author_id, is_published, is_featured, published_at, image_url)
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+            [title, slug, excerpt, content, category_id, author_id, is_published, is_featured, published_at, image_url]
         );
 
         // Get created news
@@ -224,6 +233,15 @@ exports.updateNews = async (req, res) => {
         if (is_featured !== undefined) {
             updateFields.push('is_featured = ?');
             updateValues.push(is_featured);
+        }
+
+        // Handle image upload
+        if (req.file) {
+            const protocol = req.protocol;
+            const host = req.get('host');
+            const image_url = `${protocol}://${host}/uploads/news/${req.file.filename}`;
+            updateFields.push('image_url = ?');
+            updateValues.push(image_url);
         }
 
         if (updateFields.length === 0) {

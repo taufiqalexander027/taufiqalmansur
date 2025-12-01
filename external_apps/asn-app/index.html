@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html lang="id">
+
+<head>
+  <meta charset="UTF-8" />
+  <link rel="icon" type="image/svg+xml" href="/vite.svg" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>E-Laporan ASN Jatim</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    /* Global Box Sizing */
+    *,
+    *::before,
+    *::after {
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: 'Inter', sans-serif;
+      background-color: #f3f4f6;
+    }
+
+    /* Base Sheet Styling (A4) */
+    .sheet {
+      width: 210mm;
+      /* FIXED HEIGHT A4: Ini kunci agar preview terlihat sama persis dengan PDF (terpotong) */
+      height: 296mm;
+      background: white;
+      overflow: hidden;
+      position: relative;
+      display: flex;
+      flex-direction: column;
+      /* Padding: Top/Bottom 15mm, Left/Right 20mm */
+      padding: 15mm 20mm;
+      /* Force page break after each sheet for printing */
+      page-break-after: always;
+    }
+
+    /* Screen Preview Mode (Adds gap and shadow) */
+    .sheet-preview {
+      margin: 10mm auto;
+      box-shadow: 0 0 15px rgba(0, 0, 0, 0.1);
+    }
+
+    /* Print/PDF Mode (Strict A4 Reset) */
+    .sheet-print {
+      margin: 0;
+      box-shadow: none;
+      border: none;
+    }
+
+    /* Utility for page breaking */
+    .page-break {
+      page-break-after: always;
+    }
+
+    /* Dashed separator for visual guide in preview */
+    .dashed-separator {
+      border-top: 2px dashed #e5e7eb;
+      margin: 1rem 0;
+    }
+
+    /* Native Print Override */
+    @media print {
+      @page {
+        size: A4;
+        margin: 0;
+      }
+
+      body {
+        margin: 0;
+        background: white;
+      }
+
+      .no-print {
+        display: none !important;
+      }
+
+      .sheet {
+        width: 210mm;
+        height: 297mm;
+        /* Full A4 in native print */
+        margin: 0;
+        box-shadow: none;
+        page-break-after: always;
+      }
+    }
+
+    /* Animations */
+    @keyframes fadeIn {
+      from {
+        opacity: 0;
+      }
+
+      to {
+        opacity: 1;
+      }
+    }
+
+    @keyframes slideIn {
+      from {
+        transform: translateY(20px);
+        opacity: 0;
+      }
+
+      to {
+        transform: translateY(0);
+        opacity: 1;
+      }
+    }
+
+    .animate-fade-in {
+      animation: fadeIn 0.5s ease-out forwards;
+    }
+
+    .animate-slide-in {
+      animation: slideIn 0.5s ease-out forwards;
+    }
+  </style>
+</head>
+
+<body>
+  <div id="root"></div>
+  <script type="module" src="/index.tsx"></script>
+</body>
+
+</html>

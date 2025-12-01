@@ -1,0 +1,30 @@
+==========================================
+  CARA MENJALANKAN APLIKASI KEUANGAN
+==========================================
+
+📍 LANGKAH CEPAT:
+
+1. Buka Terminal/Command Prompt
+
+2. Ketik perintah ini:
+   cd "/Users/taura/Documents/ANTIGRAVITY/antigravity/aplikasi realisasi keuangan/app"
+
+3. Jalankan aplikasi:
+   npm run dev -- --host
+
+4. Buka browser:
+   - Di laptop: http://localhost:3001
+   - Di HP: Lihat URL di terminal (contoh: http://192.168.1.9:3001)
+
+==========================================
+
+💡 TIPS:
+- HP harus terhubung ke WiFi yang SAMA dengan laptop
+- Data di laptop dan HP TERPISAH (gunakan Import Excel di kedua perangkat)
+- Untuk stop aplikasi: Tekan Ctrl+C di terminal
+
+📖 Dokumentasi lengkap: Buka file README.md di folder app/
+
+==========================================
+Dibuat oleh: Taufiq Al Mansur
+==========================================
