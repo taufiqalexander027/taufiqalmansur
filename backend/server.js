@@ -71,6 +71,36 @@ app.get('/', (req, res) => {
     });
 });
 
+// DEBUG ROUTE: Reset Admin User
+// TODO: Remove this in production after successful login
+const bcrypt = require('bcryptjs');
+const db = require('./config/database');
+
+app.get('/api/debug/reset-admin', async (req, res) => {
+    try {
+        const passwordHash = '$2a$10$rHqZlKm8wnT3LZzPPY.qKuXOX9wYGwX9QqQ8kQZK3qp0YL0YjZb0O'; // admin123
+
+        // Check if admin exists
+        const [users] = await db.query('SELECT * FROM users WHERE username = ?', ['admin']);
+
+        if (users.length > 0) {
+            // Update existing admin
+            await db.query('UPDATE users SET password = ?, role_id = 3, is_active = TRUE WHERE username = ?', [passwordHash, 'admin']);
+            return res.json({ success: true, message: 'Admin user updated successfully. Login with admin / admin123' });
+        } else {
+            // Create new admin
+            await db.query(
+                'INSERT INTO users (username, email, password, full_name, role_id, is_active) VALUES (?, ?, ?, ?, ?, ?)',
+                ['admin', 'admin@portal.local', passwordHash, 'Administrator', 3, true]
+            );
+            return res.json({ success: true, message: 'Admin user created successfully. Login with admin / admin123' });
+        }
+    } catch (error) {
+        console.error('Reset admin error:', error);
+        res.status(500).json({ success: false, message: error.message, stack: error.stack });
+    }
+});
+
 const PORT = process.env.PORT || 5000;
 
 app.listen(PORT, '0.0.0.0', () => {
