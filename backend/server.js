@@ -44,33 +44,6 @@ app.get('/api/health', (req, res) => {
     });
 });
 
-// Error handling middleware
-app.use((err, req, res, next) => {
-    console.error(err.stack);
-    res.status(err.status || 500).json({
-        success: false,
-        message: err.message || 'Internal Server Error',
-        ...(process.env.NODE_ENV === 'development' && { stack: err.stack })
-    });
-});
-
-// 404 handler
-app.use((req, res) => {
-    res.status(404).json({
-        success: false,
-        message: 'Route not found'
-    });
-});
-
-// Root route for Railway health check
-app.get('/', (req, res) => {
-    res.json({
-        status: 'OK',
-        message: 'Portal Backend is running',
-        service: 'premium-news-app-backend'
-    });
-});
-
 // DEBUG ROUTE: Reset Admin User
 // TODO: Remove this in production after successful login
 const bcrypt = require('bcryptjs');
@@ -100,6 +73,35 @@ app.get('/api/debug/reset-admin', async (req, res) => {
         res.status(500).json({ success: false, message: error.message, stack: error.stack });
     }
 });
+
+// Error handling middleware
+app.use((err, req, res, next) => {
+    console.error(err.stack);
+    res.status(err.status || 500).json({
+        success: false,
+        message: err.message || 'Internal Server Error',
+        ...(process.env.NODE_ENV === 'development' && { stack: err.stack })
+    });
+});
+
+// 404 handler
+app.use((req, res) => {
+    res.status(404).json({
+        success: false,
+        message: 'Route not found'
+    });
+});
+
+// Root route for Railway health check
+app.get('/', (req, res) => {
+    res.json({
+        status: 'OK',
+        message: 'Portal Backend is running',
+        service: 'premium-news-app-backend'
+    });
+});
+
+
 
 const PORT = process.env.PORT || 5000;
 
