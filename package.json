@@ -4,7 +4,7 @@
   "version": "0.0.0",
   "scripts": {
     "dev": "vite",
-    "start": "node backend/server.js",
+    "start": "node backend/scripts/setupDatabase.js && node backend/server.js",
     "build": "vite build",
     "lint": "eslint .",
     "preview": "vite preview"

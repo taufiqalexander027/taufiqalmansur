@@ -20,7 +20,7 @@ CREATE TABLE IF NOT EXISTS roles (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- Insert default roles
-INSERT INTO roles (name, description) VALUES
+INSERT IGNORE INTO roles (name, description) VALUES
 ('public', 'Public user - can access public content, booking, LMS'),
 ('staff', 'Internal staff - can access E-Laporan ASN and Financial Reports'),
 ('admin', 'Administrator - full access to all systems and content management');
@@ -48,7 +48,7 @@ CREATE TABLE IF NOT EXISTS users (
 
 -- Insert default admin user (password: admin123)
 -- Password hash generated with bcrypt
-INSERT INTO users (username, email, password, full_name, role_id) VALUES
+INSERT IGNORE INTO users (username, email, password, full_name, role_id) VALUES
 ('admin', 'admin@portal.local', '$2a$10$rHqZlKm8wnT3LZzPPY.qKuXOX9wYGwX9QqQ8kQZK3qp0YL0YjZb0O', 'Administrator', 3);
 
 -- =============================================
@@ -64,7 +64,7 @@ CREATE TABLE IF NOT EXISTS news_categories (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- Insert default categories
-INSERT INTO news_categories (name, slug, description, icon) VALUES
+INSERT IGNORE INTO news_categories (name, slug, description, icon) VALUES
 ('Teknologi', 'teknologi', 'Berita seputar teknologi dan inovasi', '💻'),
 ('Keuangan', 'keuangan', 'Informasi laporan dan kebijakan keuangan', '💰'),
 ('Bisnis', 'bisnis', 'Berita bisnis dan kemitraan', '💼'),
@@ -101,7 +101,7 @@ CREATE TABLE IF NOT EXISTS news (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- Insert sample news data
-INSERT INTO news (title, slug, excerpt, content, category_id, author_id, is_published, is_featured, published_at) VALUES
+INSERT IGNORE INTO news (title, slug, excerpt, content, category_id, author_id, is_published, is_featured, published_at) VALUES
 (
     'Peluncuran Layanan Digital Terbaru',
     'peluncuran-layanan-digital-terbaru',
