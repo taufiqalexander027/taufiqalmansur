@@ -1,0 +1,38 @@
+{
+  "name": "portal-terintegrasi-backend",
+  "version": "1.0.0",
+  "description": "Backend untuk Portal Terintegrasi - All-in-One System",
+  "main": "server.js",
+  "scripts": {
+    "dev": "nodemon server.js",
+    "start": "node server.js",
+    "db:setup": "node scripts/setupDatabase.js",
+    "migrate:asn": "node scripts/migrateASN.js",
+    "migrate:financial": "node scripts/migrateFinancial.js",
+    "migrate:all": "npm run migrate:asn && npm run migrate:financial"
+  },
+  "keywords": [
+    "portal",
+    "backend",
+    "nodejs",
+    "express",
+    "mysql"
+  ],
+  "author": "Taufiq Al Mansur",
+  "license": "MIT",
+  "dependencies": {
+    "bcryptjs": "^2.4.3",
+    "cors": "^2.8.5",
+    "dotenv": "^16.4.5",
+    "express": "^4.19.2",
+    "express-validator": "^7.0.1",
+    "jsonwebtoken": "^9.0.2",
+    "morgan": "^1.10.0",
+    "multer": "^1.4.5-lts.1",
+    "mysql2": "^3.9.2",
+    "nodemailer": "^6.9.10"
+  },
+  "devDependencies": {
+    "nodemon": "^3.1.11"
+  }
+}
