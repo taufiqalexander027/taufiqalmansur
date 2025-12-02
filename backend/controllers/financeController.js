@@ -60,20 +60,29 @@ exports.getRekenings = async (req, res) => {
         const [rows] = await db.query('SELECT * FROM finance_rekenings');
 
         // Transform back to frontend format
-        const formatted = rows.map(row => ({
-            id: row.id,
-            kode: row.kode,
-            uraian: row.uraian,
-            seksiId: row.seksi_id,
-            program: { id: row.program_id, nama: row.program_nama },
-            kegiatan: { id: row.kegiatan_id, nama: row.kegiatan_nama },
-            subKegiatan: { id: row.sub_kegiatan_id, nama: row.sub_kegiatan_nama },
-            anggaranPAPBD: {
-                PAD: parseFloat(row.anggaran_pad),
-                DBHCHT: parseFloat(row.anggaran_dbhcht)
-            },
-            sheetName: row.sheet_name
-        }));
+        const formatted = rows.map(row => {
+            // Determine which sumber dana have budget
+            const sumberDana = [];
+            if (parseFloat(row.anggaran_pad) > 0) sumberDana.push('PAD MURNI');
+            if (parseFloat(row.anggaran_dbhcht) > 0) sumberDana.push('DBHCHT');
+            if (sumberDana.length === 0) sumberDana.push('PAD MURNI'); // Default
+
+            return {
+                id: row.id,
+                kode: row.kode,
+                uraian: row.uraian,
+                seksiId: row.seksi_id,
+                program: { id: row.program_id, nama: row.program_nama },
+                kegiatan: { id: row.kegiatan_id, nama: row.kegiatan_nama },
+                subKegiatan: { id: row.sub_kegiatan_id, nama: row.sub_kegiatan_nama },
+                sumberDana: sumberDana,
+                anggaranPAPBD: {
+                    'PAD MURNI': parseFloat(row.anggaran_pad) || 0,
+                    'DBHCHT': parseFloat(row.anggaran_dbhcht) || 0
+                },
+                sheetName: row.sheet_name
+            };
+        });
 
         res.json({ success: true, data: formatted });
     } catch (error) {
