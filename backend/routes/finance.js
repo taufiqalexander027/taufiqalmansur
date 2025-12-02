@@ -1,7 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const financeController = require('../controllers/financeController');
-const auth = require('../middleware/auth');
+const { auth } = require('../middleware/auth');
 
 // Master Data Routes
 router.post('/sync-master', auth, financeController.syncMasterData);
